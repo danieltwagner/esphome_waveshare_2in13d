@@ -3186,63 +3186,86 @@ void WaveshareEPaper2P13InD::turn_on_display_() {
 }
 
 void HOT WaveshareEPaper2P13InD::display() {
+  ESP_LOGI(TAG, "CLEARING instead of displaying...");
 
-  bool partial = this->at_update_ != 0;
-  this->at_update_ = (this->at_update_ + 1) % this->full_update_every_;
+  int w, h;
+  w = (EPD_2IN13D_WIDTH % 8 == 0)? (EPD_2IN13D_WIDTH / 8 ): (EPD_2IN13D_WIDTH / 8 + 1);
+  h = EPD_2IN13D_HEIGHT;
 
-  if (partial) {
-    ESP_LOGI(TAG, "Performing partial e-paper update.");
-  } else {
-    ESP_LOGI(TAG, "Performing full e-paper update.");
+  this->command(0x10);
+  for (int j = 0; j < h; j++) {
+      for (int i = 0; i < w; i++) {
+          this->data(0x00);
+      }
   }
 
-  if (!partial) {
-    int Width, Height;
-    Width = (EPD_2IN13D_WIDTH % 8 == 0)? (EPD_2IN13D_WIDTH / 8 ): (EPD_2IN13D_WIDTH / 8 + 1);
-    Height = EPD_2IN13D_HEIGHT;
-
-    this->command(0x10);
-    for (int j = 0; j < Height; j++) {
-        for (int i = 0; i < Width; i++) {
-            this->data(0x00);
-        }
-    }
-
-    this->command(0x13);
-    this->write_array(this->buffer_, this->get_buffer_length_());
-
-    this->set_full_reg_();
-    this->turn_on_display_();
-    
-  } else {
-
-    /* Set partial Windows */
-    this->set_part_reg_();
-    this->command(0x91);		//This command makes the display enter partial mode
-    this->command(0x90);		//resolution setting
-    this->data(0);           //x-start
-    this->data(EPD_2IN13D_WIDTH - 1);       //x-end
-
-    this->data(0);
-    this->data(0);     //y-start
-    this->data(EPD_2IN13D_HEIGHT / 256);
-    this->data(EPD_2IN13D_HEIGHT % 256 - 1);  //y-end
-    this->data(0x28);
-
-    int Width = (EPD_2IN13D_WIDTH % 8 == 0)? (EPD_2IN13D_WIDTH / 8 ): (EPD_2IN13D_WIDTH / 8 + 1);
-    
-    /* send data */
-    this->command(0x10);
-    this->write_array(this->buffer_, this->get_buffer_length_());
-
-    this->command(0x13);
-    this->write_array(this->buffer_, this->get_buffer_length_());
-
-    /* Set partial refresh */    
-    this->turn_on_display_();
+  this->command(0x13);
+  for (int j = 0; j < h; j++) {
+      for (int i = 0; i < w; i++) {
+          this->data(0xFF);
+      }
   }
 
-  ESP_LOGI(TAG, "Completed e-paper update.");
+  this->set_full_reg_();
+  this->turn_on_display_();
+  return;
+
+  // bool partial = this->at_update_ != 0;
+  // this->at_update_ = (this->at_update_ + 1) % this->full_update_every_;
+
+  // if (partial) {
+  //   ESP_LOGI(TAG, "Performing partial e-paper update.");
+  // } else {
+  //   ESP_LOGI(TAG, "Performing full e-paper update.");
+  // }
+
+  // if (!partial) {
+  //   int Width, Height;
+  //   Width = (EPD_2IN13D_WIDTH % 8 == 0)? (EPD_2IN13D_WIDTH / 8 ): (EPD_2IN13D_WIDTH / 8 + 1);
+  //   Height = EPD_2IN13D_HEIGHT;
+
+  //   this->command(0x10);
+  //   for (int j = 0; j < Height; j++) {
+  //       for (int i = 0; i < Width; i++) {
+  //           this->data(0x00);
+  //       }
+  //   }
+
+  //   this->command(0x13);
+  //   this->write_array(this->buffer_, this->get_buffer_length_());
+
+  //   this->set_full_reg_();
+  //   this->turn_on_display_();
+    
+  // } else {
+
+  //   /* Set partial Windows */
+  //   this->set_part_reg_();
+  //   this->command(0x91);		//This command makes the display enter partial mode
+  //   this->command(0x90);		//resolution setting
+  //   this->data(0);           //x-start
+  //   this->data(EPD_2IN13D_WIDTH - 1);       //x-end
+
+  //   this->data(0);
+  //   this->data(0);     //y-start
+  //   this->data(EPD_2IN13D_HEIGHT / 256);
+  //   this->data(EPD_2IN13D_HEIGHT % 256 - 1);  //y-end
+  //   this->data(0x28);
+
+  //   int Width = (EPD_2IN13D_WIDTH % 8 == 0)? (EPD_2IN13D_WIDTH / 8 ): (EPD_2IN13D_WIDTH / 8 + 1);
+    
+  //   /* send data */
+  //   this->command(0x10);
+  //   this->write_array(this->buffer_, this->get_buffer_length_());
+
+  //   this->command(0x13);
+  //   this->write_array(this->buffer_, this->get_buffer_length_());
+
+  //   /* Set partial refresh */    
+  //   this->turn_on_display_();
+  // }
+
+  // ESP_LOGI(TAG, "Completed e-paper update.");
 }
 
 void WaveshareEPaper2P13InD::deep_sleep() {
