@@ -786,6 +786,7 @@ class WaveshareEPaper2P13InD : public WaveshareEPaper {
   int get_width_internal() override;
   int get_height_internal() override;
   void reset_();
+  void clear_(uint8_t color);
 };
 
 }  // namespace waveshare_epaper

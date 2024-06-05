@@ -3185,9 +3185,7 @@ void WaveshareEPaper2P13InD::turn_on_display_() {
   this->wait_until_idle_();
 }
 
-void HOT WaveshareEPaper2P13InD::display() {
-  ESP_LOGI(TAG, "CLEARING instead of displaying...");
-
+void WaveshareEPaper2P13InD::clear_(uint8_t color) {
   int w, h;
   w = (EPD_2IN13D_WIDTH % 8 == 0)? (EPD_2IN13D_WIDTH / 8 ): (EPD_2IN13D_WIDTH / 8 + 1);
   h = EPD_2IN13D_HEIGHT;
@@ -3195,23 +3193,33 @@ void HOT WaveshareEPaper2P13InD::display() {
   this->command(0x10);
   for (int j = 0; j < h; j++) {
       for (int i = 0; i < w; i++) {
-          this->data(0x00);
+          this->data(0xFF^color);
       }
   }
 
   this->command(0x13);
   for (int j = 0; j < h; j++) {
       for (int i = 0; i < w; i++) {
-          this->data(0xFF);
+          this->data(color);
       }
   }
 
   this->set_full_reg_();
   this->turn_on_display_();
   return;
+}
 
-  // bool partial = this->at_update_ != 0;
-  // this->at_update_ = (this->at_update_ + 1) % this->full_update_every_;
+void HOT WaveshareEPaper2P13InD::display() {
+  ESP_LOGI(TAG, "CLEARING instead of displaying...");
+
+  bool partial = this->at_update_ != 0;
+  this->at_update_ = (this->at_update_ + 1) % this->full_update_every_;
+
+  if (partial) {
+    this->clear_(0xFF);
+  } else {
+    this->clear_(0x00);
+  }
 
   // if (partial) {
   //   ESP_LOGI(TAG, "Performing partial e-paper update.");
