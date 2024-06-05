@@ -3070,14 +3070,29 @@ static const unsigned int EPD_2IN13D_WIDTH = 104;
 static const unsigned int EPD_2IN13D_HEIGHT = 212;
 
 void WaveshareEPaper2P13InD::reset_() {
-  if (this->reset_pin_ != nullptr) {
-    this->reset_pin_->digital_write(true);
-    delay(200);  // NOLINT
-    this->reset_pin_->digital_write(false);
-    delay(10);   // NOLINT
-    this->reset_pin_->digital_write(true);
-    delay(200);  // NOLINT
+  if (this->reset_pin_ == nullptr) {
+    ESP_LOGI(TAG, "Reset pin is not set!");
+    return;
   }
+  this->reset_pin_->digital_write(true);
+  delay(200);  // NOLINT
+  this->reset_pin_->digital_write(false);
+  delay(10);   // NOLINT
+  this->reset_pin_->digital_write(true);
+  delay(200);  // NOLINT
+}
+
+bool WaveshareEPaper2P13InD::wait_until_idle_() {
+  ESP_LOGI(TAG, "ReadBusy");
+  char busy;
+  do {
+      this->command(0x71);
+      busy = this->busy_pin_->digital_read();
+      busy =!(busy & 0x01);
+  } while(busy);
+  ESP_LOGI(TAG, "ReadBusy over");
+  delay(200); // NOLINT
+  return true;
 }
 
 void WaveshareEPaper2P13InD::initialize() {
@@ -3286,6 +3301,10 @@ void WaveshareEPaper2P13InD::deep_sleep() {
 
 void WaveshareEPaper2P13InD::set_full_update_every(uint32_t full_update_every) {
   this->full_update_every_ = full_update_every;
+}
+
+uint32_t WaveshareEPaper2P13InD::get_buffer_length_() {
+  return this->get_width_controller() * this->get_height_internal();
 }
 
 int WaveshareEPaper2P13InD::get_width_internal() { return EPD_2IN13D_WIDTH; }

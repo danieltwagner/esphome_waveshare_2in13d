@@ -783,9 +783,11 @@ class WaveshareEPaper2P13InD : public WaveshareEPaper {
   void set_full_reg_();
   void set_part_reg_();
   void turn_on_display_();
+  uint32_t get_buffer_length_() override;
   int get_width_internal() override;
   int get_height_internal() override;
   void reset_();
+  bool wait_until_idle_();
   void clear_(uint8_t color);
 };
 
